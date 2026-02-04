@@ -125,7 +125,6 @@ def report_to_list(report, from_line=11, report_pixel_loc_diffs=False):
     else:
         # Match the astropy report
         streport, pixelreport = [], []
-        stidx, pixidx = False, False
         for idx, line in enumerate(report):
             # Ignore the ST added legends
             if "failed the (atol, rtol) test" in line:
@@ -1011,6 +1010,11 @@ def test_table_data_mod(mock_table, fitsdiff_default_kwargs):
         "col_name dtype rel_diffs rel_max rel_mean rel_std",
         "-------- ----- --------- ------- -------- -------",
         "FLUX    f8         2      99       50      49",
+        "Columns ['BACKGROUND', 'BKGD_ERROR', 'BKGD_VAR_FLAT', 'BKGD_VAR_POISSON', "
+        "'BKGD_VAR_RNOISE', 'DQ', 'FLUX_ERROR', 'FLUX_VAR_FLAT', "
+        "'FLUX_VAR_POISSON', 'FLUX_VAR_RNOISE', 'NPIXELS', 'SB_ERROR', "
+        "'SB_VAR_FLAT', 'SB_VAR_POISSON', 'SB_VAR_RNOISE', 'SURF_BRIGHT', "
+        "'WAVELENGTH'] are identical",
     ]
     assert result == apresult
     assert pixelreport == apreport
@@ -1045,6 +1049,11 @@ def test_table_nan_in_data(mock_table, fitsdiff_default_kwargs):
         "col_name dtype rel_diffs rel_max rel_mean rel_std",
         "-------- ----- --------- ------- -------- -------",
         "FLUX    f8         2       1        1       0",
+        "Columns ['BACKGROUND', 'BKGD_ERROR', 'BKGD_VAR_FLAT', 'BKGD_VAR_POISSON', "
+        "'BKGD_VAR_RNOISE', 'DQ', 'FLUX_ERROR', 'FLUX_VAR_FLAT', "
+        "'FLUX_VAR_POISSON', 'FLUX_VAR_RNOISE', 'NPIXELS', 'SB_ERROR', "
+        "'SB_VAR_FLAT', 'SB_VAR_POISSON', 'SB_VAR_RNOISE', 'SURF_BRIGHT', "
+        "'WAVELENGTH'] are identical",
     ]
     assert result == apresult
     assert pixelreport == apreport
@@ -1079,6 +1088,11 @@ def test_table_nan_column(mock_table, fitsdiff_default_kwargs):
         "col_name  dtype rel_diffs rel_max rel_mean rel_std",
         "---------- ----- --------- ------- -------- -------",
         "WAVELENGTH    f8         0     nan      nan     nan",
+        "Columns ['BACKGROUND', 'BKGD_ERROR', 'BKGD_VAR_FLAT', 'BKGD_VAR_POISSON', "
+        "'BKGD_VAR_RNOISE', 'DQ', 'FLUX', 'FLUX_ERROR', 'FLUX_VAR_FLAT', "
+        "'FLUX_VAR_POISSON', 'FLUX_VAR_RNOISE', 'NPIXELS', 'SB_ERROR', "
+        "'SB_VAR_FLAT', 'SB_VAR_POISSON', 'SB_VAR_RNOISE', 'SURF_BRIGHT'] are "
+        "identical",
     ]
     assert result == apresult
     assert pixelreport == apreport
@@ -1577,6 +1591,7 @@ def test_hdus_tables_non_numeric(fitsdiff_default_kwargs):
     diff = STFITSDiff(a, b, **fitsdiff_default_kwargs)
     report = diff.report()
     assert "12 different table data element(s) found (30.00% different)." in report
+    assert "Column ['IDENTICAL'] is identical" in report
 
 
 def test_table_pq_different_array_sizes(mock_table, fitsdiff_default_kwargs):
@@ -1611,6 +1626,7 @@ def test_table_pq_different_array_sizes(mock_table, fitsdiff_default_kwargs):
     assert result is False
     assert "Extra column col_1 of format PI(4) in a" in report
     assert "Extra column col_1 of format PI(5) in b" in report
+    assert "Column ['col_3'] is identical" in report
 
 
 def test_table_nan_and_inf(fitsdiff_default_kwargs):
