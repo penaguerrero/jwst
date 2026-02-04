@@ -1319,7 +1319,12 @@ class STTableDataDiff(TableDataDiff):
                 inf_diffs = (np.isinf(arra)[~bothfinite] != np.isinf(arrb)[~bothfinite]).sum()
                 nan_diffs = (np.isnan(arra)[~bothfinite] != np.isnan(arrb)[~bothfinite]).sum()
                 n_different = (arra[bothfinite] != arrb[bothfinite]).sum() + inf_diffs + nan_diffs
-                if n_different == 0:
+                # test if the columns are identical or contain all nan or inf
+                all_nana = arra[np.isnan(arra)].size == arra.size
+                all_nanb = arrb[np.isnan(arrb)].size == arrb.size
+                all_infa = arra[np.isinf(arra)].size == arra.size
+                all_infb = arrb[np.isinf(arrb)].size == arrb.size
+                if n_different == 0 or all_nana == all_nanb or all_infa == all_infb:
                     self.identical_columns.append(col.name)
                     continue
                 if not self.report_pixel_loc_diffs:
