@@ -1318,14 +1318,15 @@ class STTableDataDiff(TableDataDiff):
                 bothfinite = np.isfinite(arra) & np.isfinite(arrb)
                 inf_diffs = (np.isinf(arra)[~bothfinite] != np.isinf(arrb)[~bothfinite]).sum()
                 nan_diffs = (np.isnan(arra)[~bothfinite] != np.isnan(arrb)[~bothfinite]).sum()
-                # Find plain differences while excluding entries where both are NaN or inf
-                absdiff = np.abs(arrb[bothfinite] - arra[bothfinite])
                 if self.atol == 0 and self.rtol == 0:
                     thresh = 0.0
                 else:
                     thresh = self.atol + self.rtol * np.abs(arrb[bothfinite])
+                # Find plain differences while excluding entries where both are not NaN or inf
+                absdiff = np.abs(arrb[bothfinite] - arra[bothfinite])
                 failed_tol_test = absdiff > thresh
-                n_different = failed_tol_test.sum() + inf_diffs + nan_diffs
+                number_that_fail_atol_rtol_test = failed_tol_test.sum()
+                n_different = number_that_fail_atol_rtol_test + inf_diffs + nan_diffs
                 if n_different == 0:
                     self.identical_columns.append(col.name)
                     continue
@@ -1339,11 +1340,8 @@ class STTableDataDiff(TableDataDiff):
                 arramax, arramin, arramean = get_stats_if_nonans(nonansa)
                 arrbmax, arrbmin, arrbmean = get_stats_if_nonans(nonansb)
                 maxr, meanr, stdr = np.nan, np.nan, np.nan
-                number_that_fail_atol_rtol_test = failed_tol_test.sum()
-                if number_that_fail_atol_rtol_test == 0:
-                    continue
-                else:
-                    self.fail_atol_rtol_test += number_that_fail_atol_rtol_test
+                self.fail_atol_rtol_test += number_that_fail_atol_rtol_test
+                if number_that_fail_atol_rtol_test > 0:
                     rtol_failures = abs(
                         arra[bothfinite][failed_tol_test] - arrb[bothfinite][failed_tol_test]
                     )
@@ -1504,7 +1502,7 @@ class STTableDataDiff(TableDataDiff):
                     self.diff_values.append(((col.name, idx), (arra[idx], arrb[idx])))
 
         # Calculate the absolute difference only if there are failed tolerance tests
-        if self.fail_atol_rtol_test == 0 and len(self.non_numeric_diff_columns) == 0:
+        if self.diff_total == 0 and len(self.non_numeric_diff_columns) == 0:
             self.identical_columns = []
             self.different_table_elements = 0
             self.diff_total = 0
