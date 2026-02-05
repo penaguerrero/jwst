@@ -1318,7 +1318,14 @@ class STTableDataDiff(TableDataDiff):
                 bothfinite = np.isfinite(arra) & np.isfinite(arrb)
                 inf_diffs = (np.isinf(arra)[~bothfinite] != np.isinf(arrb)[~bothfinite]).sum()
                 nan_diffs = (np.isnan(arra)[~bothfinite] != np.isnan(arrb)[~bothfinite]).sum()
-                n_different = (arra[bothfinite] != arrb[bothfinite]).sum() + inf_diffs + nan_diffs
+                # Find plain differences while excluding entries where both are NaN or inf
+                absdiff = np.abs(arrb[bothfinite] - arra[bothfinite])
+                if self.atol == 0 and self.rtol == 0:
+                    thresh = 0.0
+                else:
+                    thresh = self.atol + self.rtol * np.abs(arrb[bothfinite])
+                failed_tol_test = absdiff > thresh
+                n_different = failed_tol_test.sum() + inf_diffs + nan_diffs
                 if n_different == 0:
                     self.identical_columns.append(col.name)
                     continue
@@ -1332,13 +1339,6 @@ class STTableDataDiff(TableDataDiff):
                 arramax, arramin, arramean = get_stats_if_nonans(nonansa)
                 arrbmax, arrbmin, arrbmean = get_stats_if_nonans(nonansb)
                 maxr, meanr, stdr = np.nan, np.nan, np.nan
-                # Find plain differences while excluding entries where both are NaN or inf
-                absdiff = np.abs(arrb[bothfinite] - arra[bothfinite])
-                if self.atol == 0 and self.rtol == 0:
-                    thresh = 0.0
-                else:
-                    thresh = self.atol + self.rtol * np.abs(arrb[bothfinite])
-                failed_tol_test = absdiff > thresh
                 number_that_fail_atol_rtol_test = failed_tol_test.sum()
                 if number_that_fail_atol_rtol_test == 0:
                     continue
