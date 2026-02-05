@@ -1340,8 +1340,10 @@ class STTableDataDiff(TableDataDiff):
                     thresh = self.atol + self.rtol * np.abs(arrb[bothfinite])
                 failed_tol_test = absdiff > thresh
                 number_that_fail_atol_rtol_test = failed_tol_test.sum()
-                self.fail_atol_rtol_test += number_that_fail_atol_rtol_test
-                if number_that_fail_atol_rtol_test > 0:
+                if number_that_fail_atol_rtol_test == 0:
+                    continue
+                else:
+                    self.fail_atol_rtol_test += number_that_fail_atol_rtol_test
                     rtol_failures = abs(
                         arra[bothfinite][failed_tol_test] - arrb[bothfinite][failed_tol_test]
                     )
@@ -1502,7 +1504,10 @@ class STTableDataDiff(TableDataDiff):
                     self.diff_values.append(((col.name, idx), (arra[idx], arrb[idx])))
 
         # Calculate the absolute difference only if there are failed tolerance tests
-        if self.diff_total == 0 and len(self.non_numeric_diff_columns) == 0:
+        if self.fail_atol_rtol_test == 0 and len(self.non_numeric_diff_columns) == 0:
+            self.identical_columns = []
+            self.different_table_elements = 0
+            self.diff_total = 0
             return
         total_values = len(self.a) * len(self.a.dtype.fields)
         # Calculate the absolute and relative difference percentages
