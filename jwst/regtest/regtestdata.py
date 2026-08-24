@@ -542,7 +542,14 @@ def _data_glob_url(repo, path, glob, root):
     ).include("repo","path","name")\
     """
 
-    return url_paths
+    # 900 is the default aql timeout
+    with requests.post(search_url, data=aql, headers=headers, timeout=900) as r:
+        r_json = r.json()
+        if "results" in r_json:
+            return [os.path.join(r["path"], r["name"]) for r in r_json["results"]]
+        raise KeyError(
+            f"URL data glob failed\n    status_code: {r.status_code}\n    JSON:\n{r_json}"
+        )
 
 
 @dataclass
@@ -563,11 +570,3 @@ class RTData:
                 raise ValueError(
                     "Association files expected to be listed in the RTData.asn_files attribute."
                 )
-    # 900 is the default aql timeout
-    with requests.post(search_url, data=aql, headers=headers, timeout=900) as r:
-        r_json = r.json()
-        if "results" in r_json:
-            return [os.path.join(r["path"], r["name"]) for r in r_json["results"]]
-        raise KeyError(
-            f"URL data glob failed\n    status_code: {r.status_code}\n    JSON:\n{r_json}"
-        )
