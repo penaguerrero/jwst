@@ -19,13 +19,13 @@ INPUT_DATA = {
         from_mast=False,
         asn_files=[FILE1, "file2_rate.fits", "file3_rate.fits"],
         asn_files_from_mast=False,
-        mod_code=True,
+        mod_code="mk_empty_files",
         comment="This code was used to create the files in the association.",
     )
 }
 
 
-def mod_code():
+def mk_empty_files():
     """Create empty FITS files for the test."""
     for i in range(3):
         file = "file" + str(i + 1) + "_rate.fits"

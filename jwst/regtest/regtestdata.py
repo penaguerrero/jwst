@@ -552,7 +552,7 @@ class RTData:
     file_name: str
     path: str
     from_mast: bool = True
-    mod_code: bool = False
+    mod_code: str = "N/A"
     comment: str = "N/A"
     asn_files: list = field(default_factory=list)
     asn_files_from_mast: bool = True
