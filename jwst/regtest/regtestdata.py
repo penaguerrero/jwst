@@ -606,7 +606,7 @@ def mk_mod_name(file_basename):
 
 def trim_tso_data(file, ints_to_keep, intstart, ints_offset):
     """
-    Trim TSO data and saves the trimmed data in the same directory as the input file.
+    Trim TSO data and save into new file in the same directory as the input file.
 
     Parameters
     ----------
@@ -621,14 +621,13 @@ def trim_tso_data(file, ints_to_keep, intstart, ints_offset):
     """
     hdulist = fits.open(file)
     hdu_count = len(hdulist)
-    hdulist.info()
     # Trim the desired extensions and set the keywords
     hdulist[0].header["INTSTART"] = intstart
     hdulist[0].header["INTEND"] = intstart + ints_to_keep
     for ext in range(hdu_count):
-        if "BinTableHDU" in repr(type(hdulist[ext])):
-            tab = hdulist[ext].data[ints_offset : ints_offset + ints_to_keep + 1]
-            hdulist[ext].data = tab
+        if hdulist[ext].name == "INT_TIMES":
+            trimmed_tab = hdulist[ext].data[ints_offset : ints_offset + ints_to_keep + 1]
+            hdulist[ext].data = trimmed_tab
         data = hdulist[ext].data
         if len(np.shape(data)) > 2:
             trimmed_data = hdulist[ext].data[ints_offset : ints_offset + ints_to_keep + 1, ...]
@@ -637,7 +636,6 @@ def trim_tso_data(file, ints_to_keep, intstart, ints_offset):
     modfname = mk_mod_name(file_path.name)
     trimmed_file = file_path.parent / modfname
     hdulist.writeto(trimmed_file, overwrite=True)
-    hdulist.info()
     hdulist.close()
 
 

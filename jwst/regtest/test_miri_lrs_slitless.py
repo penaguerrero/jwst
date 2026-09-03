@@ -13,12 +13,10 @@ INPUT_DATA_PATH = "miri/lrs"
 RTDATA_TESTING_PATH = "rtdata_testing"
 DATASET1_ID = "jw01536028001_03103_00001-seg001_mirimage"
 DATASET2_ID = "jw01536028001_03103_00001-seg002_mirimage"
-# DATASET3_ID = "jw01281001001_04103_00001-seg002_trim_mirimage"
 DATASET3_ID = "jw01281001001_04103_00001-seg002_mirimage_mod"
 ASN3_FILENAME = "jw01536-o028_20221202t215749_tso3_00001_asn.json"
 PRODUCT_NAME = "jw01536-o028_t008_miri_p750l-slitlessprism"
 ASN_ID = "o028"
-# DATASET4_ID = "jw04496004001_03103_00001-seg001_mirimage_truncated"
 DATASET4_ID = "jw04496004001_03103_00001-seg001_mirimage_mod"
 TARG_DATASET4 = "jw04496004001_03102_00001-seg001_mirimage_rate.fits"
 
@@ -71,13 +69,13 @@ def trim_tso():
     input_data = {
         "jw01281001001_04103_00001-seg002_mirimage_uncal.fits": {
             "ints_to_keep": 19,
-            "intstart": 119,
+            "intstart": 133,
             "ints_offset": 14,
         },
         "jw04496004001_03103_00001-seg001_mirimage_rateints.fits": {
             "ints_to_keep": 9,
             "intstart": 1,
-            "ints_offset": 1,
+            "ints_offset": 0,
         },
     }
 
@@ -90,8 +88,7 @@ def trim_tso():
 def run_tso1_pipeline(rtdata_module):
     """Run the calwebb_detector1 pipeline on a MIRI LRS slitless exposure."""
     rtdata = rtdata_module
-    # rtdata.get_data(f"miri/lrs/{DATASET1_ID}_uncal.fits")
-    rtdata.get_data(INPUT_DATA_PATH + "/" + INPUT_DATA[DATASET1_ID].file_name)
+    rtdata.get_data(INPUT_DATA[DATASET1_ID].path + "/" + INPUT_DATA[DATASET1_ID].file_name)
 
     args = [
         "calwebb_detector1",
@@ -112,8 +109,7 @@ def run_detector1_pipeline(rtdata_module):
     Focusing on the steps that depend on integration # and not covered by run_tso1_pipeline.
     Also test running RSC step"""
     rtdata = rtdata_module
-    # rtdata.get_data(f"miri/lrs/{DATASET3_ID}_uncal.fits")
-    rtdata.get_data(INPUT_DATA_PATH + "/" + INPUT_DATA[DATASET3_ID].file_name)
+    rtdata.get_data(INPUT_DATA[DATASET3_ID].path + "/" + INPUT_DATA[DATASET3_ID].file_name)
 
     args = [
         "calwebb_detector1",
@@ -131,8 +127,7 @@ def run_detector1_pipeline(rtdata_module):
 def run_detector1_pipeline_emicorr_joint(rtdata_module):
     """Run detector1 with an alternate emicorr algorithm."""
     rtdata = rtdata_module
-    # rtdata.get_data(f"miri/lrs/{DATASET3_ID}_uncal.fits")
-    rtdata.get_data(INPUT_DATA_PATH + "/" + INPUT_DATA[DATASET3_ID].file_name)
+    rtdata.get_data(INPUT_DATA[DATASET3_ID].path + "/" + INPUT_DATA[DATASET3_ID].file_name)
 
     args = [
         "calwebb_detector1",
@@ -168,10 +163,8 @@ def run_tso_spec2_pipeline(run_tso1_pipeline, rtdata_module, resource_tracker):
 def run_tso3_pipeline(run_tso_spec2_pipeline, rtdata_module, resource_tracker):
     """Run the calwebb_tso3 pipeline on the output of run_spec2_pipeline."""
     rtdata = rtdata_module
-    # rtdata.get_data(f"miri/lrs/{DATASET2_ID}_calints.fits")
-    # rtdata.get_data(f"miri/lrs/{ASN3_FILENAME}")
-    rtdata.get_data(INPUT_DATA_PATH + "/" + INPUT_DATA[DATASET2_ID].file_name)
-    rtdata.get_data(INPUT_DATA_PATH + "/" + INPUT_DATA[ASN3_FILENAME].file_name)
+    rtdata.get_data(INPUT_DATA[DATASET2_ID].path + "/" + INPUT_DATA[DATASET2_ID].file_name)
+    rtdata.get_data(INPUT_DATA[ASN3_FILENAME].path + "/" + INPUT_DATA[ASN3_FILENAME].file_name)
 
     args = [
         "calwebb_tso3",
@@ -338,13 +331,12 @@ def run_spec2_slitless_targ_centroid(rtdata_module):
     rtdata = rtdata_module
 
     # science exposure
-    # sci = rtdata.get_data(
-    #    "miri/lrs/jw04496004001_03103_00001-seg001_mirimage_truncated_rateints.fits"
-    # )
-    sci = rtdata.get_data(INPUT_DATA_PATH + "/" + INPUT_DATA[DATASET4_ID].file_name)
+    sci = rtdata.get_data(INPUT_DATA[DATASET4_ID].path + "/" + INPUT_DATA[DATASET4_ID].file_name)
 
     # target acquisition verification image
-    taq = rtdata.get_data(INPUT_DATA_PATH + "/" + INPUT_DATA[TARG_DATASET4].file_name)
+    taq = rtdata.get_data(
+        INPUT_DATA[TARG_DATASET4].path + "/" + INPUT_DATA[TARG_DATASET4].file_name
+    )
 
     args = [
         "calwebb_spec2",
