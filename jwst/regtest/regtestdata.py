@@ -626,11 +626,11 @@ def trim_tso_data(file, ints_to_keep, intstart, ints_offset):
     hdulist[0].header["INTEND"] = intstart + ints_to_keep
     for ext in range(hdu_count):
         if hdulist[ext].name == "INT_TIMES":
-            trimmed_tab = hdulist[ext].data[ints_offset : ints_offset + ints_to_keep + 1]
+            trimmed_tab = hdulist[ext].data[ints_offset : ints_offset + ints_to_keep]
             hdulist[ext].data = trimmed_tab
         data = hdulist[ext].data
         if len(np.shape(data)) > 2:
-            trimmed_data = hdulist[ext].data[ints_offset : ints_offset + ints_to_keep + 1, ...]
+            trimmed_data = hdulist[ext].data[ints_offset : ints_offset + ints_to_keep, ...]
             hdulist[ext].data = trimmed_data
     file_path = Path(file)
     modfname = mk_mod_name(file_path.name)
@@ -657,7 +657,7 @@ class RTData:
                 raise ValueError(
                     "Association files expected to be listed in the RTData.asn_files attribute."
                 )
-        if self.mod_code != "N/A":
+        if self.mod_code != "N/A" and self.from_mast:
             if "mod" not in self.file_name:
                 raise ValueError("Modified file does not have the 'mod' suffix.")
             else:

@@ -35,7 +35,7 @@ INPUT_DATA = {
     DATASET3_ID: RTData(
         file_name=DATASET3_ID + "_uncal.fits",
         path=RTDATA_TESTING_PATH,
-        from_mast=False,
+        from_mast=True,
         mod_code="trim_tso",
     ),
     ASN3_FILENAME: RTData(
@@ -53,7 +53,7 @@ INPUT_DATA = {
     DATASET4_ID: RTData(
         file_name=DATASET4_ID + "_rateints.fits",
         path=RTDATA_TESTING_PATH,
-        from_mast=False,
+        from_mast=True,
         mod_code="trim_tso",
     ),
     "jw04496004001_03102_00001-seg001_mirimage_rate.fits": RTData(
@@ -70,20 +70,19 @@ pytestmark = [pytest.mark.bigdata]
 def trim_tso():
     input_data = {
         "jw01281001001_04103_00001-seg002_mirimage_uncal.fits": {
-            "ints_to_keep": 19,
+            "ints_to_keep": 20,
             "intstart": 133,
             "ints_offset": 14,
         },
         "jw04496004001_03103_00001-seg001_mirimage_rateints.fits": {
-            "ints_to_keep": 9,
+            "ints_to_keep": 10,
             "intstart": 1,
             "ints_offset": 0,
         },
     }
 
     for file, fdict in input_data.items():
-        fname = INPUT_DATA_PATH + "/" + file
-        trim_tso_data(fname, fdict["ints_to_keep"], fdict["intstart"], fdict["ints_offset"])
+        trim_tso_data(file, fdict["ints_to_keep"], fdict["intstart"], fdict["ints_offset"])
 
 
 @pytest.fixture(scope="module")
