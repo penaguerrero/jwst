@@ -9,7 +9,9 @@ from glob import glob as _sys_glob
 from pathlib import Path
 
 import asdf
+import numpy as np
 import requests
+from astropy.io import fits
 from ci_watson.artifactory_helpers import (
     BigdataError,
     check_url,
@@ -19,7 +21,7 @@ from ci_watson.artifactory_helpers import (
 
 from jwst.associations import load_asn
 from jwst.lib.file_utils import pushdir
-from jwst.lib.suffix import replace_suffix
+from jwst.lib.suffix import SUFFIXES_TO_ADD, _calculated_suffixes, replace_suffix
 from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
 from jwst.stpipe import Step
 
@@ -552,6 +554,93 @@ def _data_glob_url(repo, path, glob, root):
         )
 
 
+def find_suffix(fname):
+    """
+    Find the suffix of a file name.
+
+    Parameters
+    ----------
+    fname : str
+        File name to search.
+
+    Returns
+    -------
+    suffix : str
+        Pipeline suffix found.
+    """
+    suffix = None
+    for sfx in SUFFIXES_TO_ADD:
+        if sfx in fname:
+            if fname.split(sfx)[0].endswith("_"):
+                suffix = sfx
+                break
+    if suffix is None:
+        for sfx in _calculated_suffixes:
+            if sfx in fname:
+                if fname.split(sfx)[0].endswith("_"):
+                    suffix = sfx
+                    break
+    if suffix is None:
+        raise ValueError(f"Known suffix not found in file name: {fname}")
+    return suffix
+
+
+def mk_mod_name(file_basename):
+    """
+    Make the modified file name.
+
+    Parameters
+    ----------
+    file_basename : str
+        File name to modify.
+
+    Returns
+    -------
+    modfname : str
+        File name with 'mod' suffix.
+    """
+    suffix = find_suffix(file_basename)
+    modfname = file_basename.replace(suffix, "mod_" + suffix)
+    return modfname
+
+
+def trim_tso_data(file, ints_to_keep, intstart, ints_offset):
+    """
+    Trim TSO data and saves the trimmed data in the same directory as the input file.
+
+    Parameters
+    ----------
+    file : str
+        Full path and name of the file name to trim.
+    ints_to_keep : int
+        Number of integrations to keep.
+    intstart : int
+        Starting integration number.
+    ints_offset : int
+        Offset of integration number to start the trim in the array.
+    """
+    hdulist = fits.open(file)
+    hdu_count = len(hdulist)
+    hdulist.info()
+    # Trim the desired extensions and set the keywords
+    hdulist[0].header["INTSTART"] = intstart
+    hdulist[0].header["INTEND"] = intstart + ints_to_keep
+    for ext in range(hdu_count):
+        if "BinTableHDU" in repr(type(hdulist[ext])):
+            tab = hdulist[ext].data[ints_offset : ints_offset + ints_to_keep + 1]
+            hdulist[ext].data = tab
+        data = hdulist[ext].data
+        if len(np.shape(data)) > 2:
+            trimmed_data = hdulist[ext].data[ints_offset : ints_offset + ints_to_keep + 1, ...]
+            hdulist[ext].data = trimmed_data
+    file_path = Path(file)
+    modfname = mk_mod_name(file_path.name)
+    trimmed_file = file_path.parent / modfname
+    hdulist.writeto(trimmed_file, overwrite=True)
+    hdulist.info()
+    hdulist.close()
+
+
 @dataclass
 class RTData:
     """Class to contain all information about a regression test data file."""
@@ -570,3 +659,13 @@ class RTData:
                 raise ValueError(
                     "Association files expected to be listed in the RTData.asn_files attribute."
                 )
+        if self.mod_code != "N/A":
+            if "mod" not in self.file_name:
+                raise ValueError("Modified file does not have the 'mod' suffix.")
+            else:
+                original_fname = self.file_name.replace("_mod", "")
+                if self.file_name != mk_mod_name(original_fname):
+                    raise ValueError(
+                        "Suffix 'mod' should be right before pipeline suffix. "
+                        "Use function mk_mod_name."
+                    )
