@@ -69,12 +69,12 @@ pytestmark = [pytest.mark.bigdata]
 
 def trim_tso():
     input_data = {
-        "jw01281001001_04103_00001-seg002_mirimage_uncal.fits": {
+        INPUT_DATA[DATASET3_ID].file_name: {
             "ints_to_keep": 20,
             "intstart": 133,
             "ints_offset": 14,
         },
-        "jw04496004001_03103_00001-seg001_mirimage_rateints.fits": {
+        INPUT_DATA[DATASET4_ID].file_name: {
             "ints_to_keep": 10,
             "intstart": 1,
             "ints_offset": 0,
